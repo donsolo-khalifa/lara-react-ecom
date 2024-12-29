@@ -14,11 +14,16 @@ use Filament\Resources\Resource;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\ProductResource\Pages;
+use App\Filament\Resources\ProductResource\Pages\EditProduct;
+use App\Filament\Resources\ProductResource\Pages\ProductImages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\ProductResource\RelationManagers;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
+use Filament\Pages\SubNavigationPosition;
+use Filament\Resources\Pages\Page;
+use Filament\Tables\Columns\SpatieMediaLibraryImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 
@@ -26,7 +31,9 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-c-queue-list';
+
+    protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::End;
 
     public static function form(Form $form): Form
     {
@@ -38,10 +45,12 @@ class ProductResource extends Resource
                             ->live(onBlur: true)
                             ->afterStateUpdated(fn(Set $set, ?string $state) => $set('slug', Str::slug($state)))
                             ->required()
-                            ->columnSpan([1, 2, 2]),
+                            ->columnSpan([1, 2, 2])
+                            ,
                         TextInput::make('slug')
                             ->required()
-                            ->columnSpan([1, 2, 2]),
+                            ->columnSpan([1, 2, 2])
+                            ,
                         Select::make('department_id')
                             ->relationship('department', 'name')
                             ->label(__('Department'))
@@ -49,11 +58,8 @@ class ProductResource extends Resource
                             ->required()
                             ->reactive()
                             ->afterStateUpdated(fn(Set $set) => $set('category_id', null))
-                            ->columnSpan([
-                                1,
-                                2,
-                                2
-                            ]),
+                            ->columnSpan([1,2,2])
+                            ,
                         Select::make('category_id')
                             ->relationship('category', 'name', function (Builder $query, callable $get) {
                                 $departmentId = $get('department_id');
@@ -65,11 +71,8 @@ class ProductResource extends Resource
                             ->preload()
                             ->searchable()
                             ->required()
-                            ->columnSpan([
-                                1,
-                                2,
-                                2
-                            ]),
+                            ->columnSpan([1,2,2])
+                            ,
                     ]),
                 RichEditor::make('description')
                     ->required()
@@ -94,24 +97,18 @@ class ProductResource extends Resource
                 TextInput::make('price')
                     ->required()
                     ->numeric()
-                    ->columnSpan([
-                        1,
-                        2
-                    ]),
+                    ->columnSpan([1,2])
+                    ,
                 TextInput::make('quantity')
                     ->integer()
-                    ->columnSpan([
-                        1,
-                        2
-                    ]),
+                    ->columnSpan([1,2])
+                    ,
                 Select::make('status')
                     ->options(ProductStatusEnum::labels())
                     ->default(ProductStatusEnum::Draft->value)
                     ->required()
-                    ->columnSpan([
-                        1,
-                        2
-                    ]),
+                    ->columnSpan([1,2])
+                    ,
             ]);
     }
 
@@ -120,6 +117,11 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
+                SpatieMediaLibraryImageColumn::make('images')
+                ->collection('images')
+                ->limit(1)
+                ->conversion('thumb')
+                ->label('Images'),
                 TextColumn::make('title')
                     ->sortable()
                     ->words(10)
@@ -140,9 +142,9 @@ class ProductResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
-                ->options(ProductStatusEnum::labels()),
+                    ->options(ProductStatusEnum::labels()),
                 SelectFilter::make('department_id')
-                ->relationship('department','name')
+                    ->relationship('department', 'name')
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -168,6 +170,16 @@ class ProductResource extends Resource
             'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
+            'images' => Pages\ProductImages::route('/{record}/images')
         ];
+    }
+
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return
+            $page->generateNavigationItems([
+                EditProduct::class,
+                ProductImages::class,
+        ]);
     }
 }
