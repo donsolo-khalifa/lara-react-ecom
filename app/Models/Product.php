@@ -51,7 +51,10 @@ class Product extends Model implements HasMedia
         ;
     }
 
-
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
     public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
@@ -80,13 +83,11 @@ class Product extends Model implements HasMedia
         /** @var User $user */
         $user = Auth::user();
         return $query->where('created_by', $user->id);
-
     }
     function scopePublished(Builder $query)
     {
         // /** @var User $user */
         // $user = Auth::user();
         return $query->where('status', ProductStatusEnum::Published);
-
     }
 }
