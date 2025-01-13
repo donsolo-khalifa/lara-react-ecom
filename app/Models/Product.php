@@ -2,14 +2,20 @@
 
 namespace App\Models;
 
-use App\Filament\Resources\ProductResource\Pages\ProductVariations;
-use Spatie\MediaLibrary\HasMedia;
-use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\User;
 use Spatie\Image\Enums\Fit;
+use App\Enums\ProductStatusEnum;
+use App\Enums\RolesEnum;
+use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use App\Filament\Resources\ProductResource\Pages\ProductVariations;
+
 
 
 class Product extends Model implements HasMedia
@@ -57,15 +63,30 @@ class Product extends Model implements HasMedia
         return $this->belongsTo(Category::class);
     }
 
-    
+
     public function variationTypes(): HasMany
     {
         return $this->hasMany(VariationType::class);
     }
 
-   
+
     public function variations(): HasMany
     {
         return $this->hasMany(ProductVariation::class, 'product_id');
+    }
+
+    function scopeForVendor(Builder $query)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        return $query->where('created_by', $user->id);
+
+    }
+    function scopePublished(Builder $query)
+    {
+        // /** @var User $user */
+        // $user = Auth::user();
+        return $query->where('status', ProductStatusEnum::Published);
+
     }
 }
