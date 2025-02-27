@@ -34,8 +34,9 @@ class Product extends Model implements HasMedia
         //     ->fit(Fit::Contain, 100, 100)
         //     ;
         $this
-            ->addMediaConversion('tumb')
-            ->width(100);
+            ->addMediaConversion('thumb')
+            ->width(100)
+            ->height(100);
 
         $this
             ->addMediaConversion('small')

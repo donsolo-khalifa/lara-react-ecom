@@ -20,7 +20,7 @@ class VariationTypeOption extends Model implements HasMedia
         //     ->fit(Fit::Contain, 100, 100)
         //     ;
         $this
-            ->addMediaConversion('tumb')
+            ->addMediaConversion('thumb')
             ->width(100);
 
         $this
